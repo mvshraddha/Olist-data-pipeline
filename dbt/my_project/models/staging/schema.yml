@@ -1,0 +1,45 @@
+version: 2
+
+models:
+
+  - name: stg_orders
+
+    columns:
+
+      - name: order_id
+
+        tests:
+          - unique
+          - not_null
+
+      - name: order_status
+
+        tests:
+          - accepted_values:
+              arguments:
+                values:
+                - delivered
+                - shipped
+                - canceled
+                - unavailable
+                - processing
+                - created
+                - approved
+                - invoiced
+
+      - name: customer_id
+
+        tests:
+          - not_null
+
+
+  - name: fact_orders
+
+    columns:
+
+      - name: customer_id
+
+        tests:
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
