@@ -1,86 +1,282 @@
-\# Olist E-Commerce Data Pipeline
+# Olist E-Commerce Data Pipeline
 
+## Overview
+This project is an end-to-end data engineering pipeline built using the Brazilian Olist E-Commerce dataset. The pipeline ingests raw CSV files into AWS S3, loads the data into Snowflake, and transforms it using dbt to create analytics-ready fact and dimension tables.
 
+The project demonstrates modern data engineering concepts including:
+- Cloud-based data storage
+- ELT workflows
+- Data warehouse modeling
+- Data transformation using dbt
+- Data quality testing
+- Analytics-ready reporting layers
 
-\## Overview
+---
 
-End-to-end data pipeline built on real Brazilian e-commerce data 
+# Architecture
 
-from Olist. Raw CSV files are ingested into AWS S3, transformed 
+```text
+Olist CSV Dataset
+        ↓
+Python Ingestion Script
+        ↓
+AWS S3 Raw Layer
+(raw-data/date-partition/)
+        ↓
+Snowflake External/Internal Stage
+        ↓
+Raw Tables
+        ↓
+dbt Staging Models
+        ↓
+Fact & Dimension Models
+        ↓
+Analytics & Reporting
+```
 
-using AWS Glue, loaded into Snowflake, and modelled using dbt.
+---
 
+# Tech Stack
 
+| Tool | Purpose |
+|---|---|
+| Python | Data ingestion automation |
+| AWS S3 | Raw data storage |
+| Snowflake | Cloud data warehouse |
+| dbt | Data transformation and modeling |
+| SQL | Data querying and transformations |
+| GitHub | Version control |
 
-\## Architecture
+---
 
-CSV files → S3 (raw) → Glue ETL → S3 (parquet) → Snowflake (raw tables) → dbt (staging + facts)
+# Dataset
 
+Dataset used: Olist Brazilian E-Commerce Dataset
 
+The dataset contains information related to:
+- Customers
+- Orders
+- Payments
+- Products
+- Sellers
+- Reviews
+- Geolocation
 
-\## Tech Stack
+---
 
-\- Python + boto3 — S3 ingestion
+# Project Structure
 
-\- AWS S3 — data lake storage
+```text
+Olist-data-pipeline/
+│
+├── data/
+│
+├── ingestion/
+│   └── upload_to_s3.py
+│
+├── dbt/
+│   ├── models/
+│   │   ├── staging/
+│   │   └── marts/
+│   │
+│   ├── macros/
+│   ├── tests/
+│   └── dbt_project.yml
+│
+├── screenshots/
+│
+├── requirements.txt
+│
+├── .gitignore
+│
+└── README.md
+```
 
-\- AWS Glue — ETL and schema detection
+---
 
-\- Snowflake — cloud data warehouse
+# Data Ingestion
 
-\- dbt — data transformation and testing
+The ingestion pipeline:
+1. Reads raw CSV files locally
+2. Uploads files to AWS S3
+3. Stores files inside date-partitioned folders
 
+Example S3 structure:
 
+```text
+s3://olist-data-lake/raw-data/2026-05-29/
+```
 
-\## Pipeline Steps
+This structure helps simulate production-style ingestion and historical tracking.
 
-1\. Download Olist dataset from Kaggle
+---
 
-2\. Run `ingestion/script.py` to upload CSVs to S3
+# Snowflake Data Warehouse
 
-3\. Run Glue crawler to detect schema
+Raw data from S3 is loaded into Snowflake tables.
 
-4\. Run Glue ETL job to convert CSV to Parquet
+The warehouse layer includes:
+- Raw ingestion tables
+- Staging models
+- Analytics marts
 
-5\. Load Parquet files into Snowflake using COPY INTO
+---
 
-6\. Run `dbt run` to build staging and fact models
+# dbt Transformations
 
-7\. Run `dbt test` to validate data quality
+dbt is used for:
+- Cleaning raw data
+- Standardizing column names
+- Creating staging models
+- Building fact and dimension tables
+- Running data quality tests
 
+---
 
+# Data Models
 
-\## dbt Models
+## Staging Models
+- stg_customers
+- stg_orders
+- stg_order_items
+- stg_products
+- stg_payments
 
-\- `stg\_orders` — cleaned orders with proper timestamp casting
+## Mart Models
+- fact_orders
+- dim_customers
+- dim_products
+- dim_sellers
 
-\- `stg\_customers` — cleaned customer data
+---
 
-\- `fact\_orders` — delivered orders joined with customer details
+# Data Quality Tests
 
+Implemented dbt tests include:
+- unique
+- not_null
+- relationships
+- accepted_values
 
+Example:
+- order_id must be unique
+- customer_id cannot be null
+- fact_orders.customer_id must exist in dim_customers
 
-\## dbt Tests
+---
 
-\- unique and not\_null on order\_id
+# Key Features
 
-\- accepted\_values on order\_status
+- End-to-end ELT pipeline
+- Cloud storage using AWS S3
+- Snowflake warehouse integration
+- dbt transformation workflow
+- Fact and dimension modeling
+- Data quality validation
+- Date-partitioned ingestion design
 
-\- not\_null on customer\_id
+---
 
-\- relationships between fact\_orders and stg\_customers
+# How to Run the Project
 
+## 1. Clone Repository
 
+```bash
+git clone https://github.com/mvshraddha/Olist-data-pipeline.git
+```
 
-\## What I Learned
+---
 
-\- How to partition S3 data by date for efficient querying
+## 2. Install Dependencies
 
-\- How Glue DynamicFrames handle schema evolution
+```bash
+pip install -r requirements.txt
+```
 
-\- How Snowflake storage integrations work with AWS IAM
+---
 
-\- The difference between source() and ref() in dbt
+## 3. Configure AWS Credentials
 
-\- How dbt tests catch bad data before it reaches analysts
+Set AWS credentials locally using AWS CLI or environment variables.
 
+---
+
+## 4. Run Ingestion Script
+
+```bash
+python upload_to_s3.py
+```
+
+---
+
+## 5. Load Data into Snowflake
+
+Create:
+- stages
+- file formats
+- raw tables
+
+Then load files using:
+
+```sql
+COPY INTO raw_orders
+FROM @olist_stage;
+```
+
+---
+
+## 6. Run dbt Models
+
+```bash
+dbt run
+```
+
+---
+
+## 7. Run dbt Tests
+
+```bash
+dbt test
+```
+
+---
+
+# Future Improvements
+
+- Airflow orchestration
+- Incremental dbt models
+- CI/CD using GitHub Actions
+- Monitoring and alerting
+- Data lineage documentation
+- Dashboard integration
+
+---
+
+# Learning Outcomes
+
+Through this project, I gained hands-on experience with:
+- Data engineering workflows
+- ELT architecture
+- Cloud data warehousing
+- Data modeling
+- dbt transformation practices
+- S3-based raw data ingestion
+- SQL optimization concepts
+
+---
+
+# Screenshots
+
+Add screenshots for:
+- S3 bucket structure
+- Snowflake tables
+- dbt lineage graph
+- dbt test results
+
+---
+
+# Author
+
+Shraddha Veeraghantimath
+
+GitHub: https://github.com/mvshraddha
